@@ -1,1 +1,3 @@
-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
+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
+
+git push https://Ryoishimura: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@github.com/Ryoishimura/HakusanAR.git
