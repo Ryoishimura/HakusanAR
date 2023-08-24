@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html>
   <body style="margin: 0px; overflow: hidden">
-    <!-- A-Frame ライブラリの読み込み -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <!-- AR.js ライブラリの読み込み -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
-    <!-- AR領域 -->
     <a-scene embedded arjs>
-      <!-- カメラのエンティティ -->
       <a-entity camera></a-entity>
 
       <!-- 提灯1 -->
-      <!-- テストあああ -->
       <a-marker type="pattern" url="maker\pattern-tyoutin_01.patt">
         <a-entity
           position="0 0 0"
           rotation="0 0 0"
           scale="0.1 0.1 0.1"
           gltf-model="model\tyoutin_01.glb"
+          pinch-to-scale
+          drag-rotate
         ></a-entity>
       </a-marker>
 
@@ -76,7 +73,7 @@
       <a-marker type="pattern" url="maker\pattern-himejinjya.patt">
         <a-entity
           position="0 0 1"
-          rotation="0 180 0"
+          rotation="0 0 0"
           scale="0.3 0.3 0.3"
           gltf-model="model\himejinjya.glb"
         ></a-entity>
@@ -84,3 +81,58 @@
     </a-scene>
   </body>
 </html>
+
+<script>
+  AFRAME.registerComponent("pinch-to-scale", {
+    init: function () {
+      this.initialScale = this.el.getAttribute("scale");
+      this.scaleFactor = 1;
+      this.el.sceneEl.addEventListener(
+        "twofingermove",
+        this.onPinch.bind(this)
+      );
+    },
+    onPinch: function (event) {
+      const newScaleFactor =
+        (this.scaleFactor * event.detail.spread) / event.detail.startSpread;
+      this.el.setAttribute("scale", {
+        x: this.initialScale.x * newScaleFactor,
+        y: this.initialScale.y * newScaleFactor,
+        z: this.initialScale.z * newScaleFactor,
+      });
+
+      if (event.detail.isFinal) {
+        this.scaleFactor = newScaleFactor;
+      }
+    },
+  });
+
+  AFRAME.registerComponent("drag-rotate", {
+    schema: {
+      sensitivity: { default: 1 },
+    },
+    init: function () {
+      this.isDragging = false;
+      this.previousMousePosition = { x: 0, y: 0 };
+
+      this.el.addEventListener("mousedown", this.onMouseDown.bind(this));
+      this.el.addEventListener("mouseup", this.onMouseUp.bind(this));
+      this.el.addEventListener("mousemove", this.onMouseMove.bind(this));
+    },
+    onMouseDown: function (event) {
+      this.isDragging = true;
+      this.previousMousePosition = { x: event.clientX, y: event.clientY };
+    },
+    onMouseUp: function () {
+      this.isDragging = false;
+    },
+    onMouseMove: function (event) {
+      if (!this.isDragging) return;
+
+      const deltaX = event.clientX - this.previousMousePosition.x;
+      this.el.object3D.rotation.y -= deltaX * this.data.sensitivity * 0.01;
+
+      this.previousMousePosition = { x: event.clientX, y: event.clientY };
+    },
+  });
+</script>
